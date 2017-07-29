@@ -1,0 +1,4 @@
+git clone  git@github.com:lvzhengxu1987/chunchun.git
+
+git config user.name "lvzhengxu1987"
+git config user.email "lvzhengxu1987@126.com"
