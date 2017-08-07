@@ -68,7 +68,7 @@ char *argv[];
 {
 	int i,j;
 	int rc;
-	pthread_attr_t reqattr[MAX_THREADS];
+	ethread_attr_t reqattr[MAX_THREADS];
 	pthread_attr_t resqattr[MAX_THREADS];
 	pthread_attr_t tmattr;
 
