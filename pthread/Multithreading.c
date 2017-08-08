@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #define BUFFER_SIZE 16
 #define OVER (-1)
@@ -58,12 +59,14 @@ int get(struct prodcons *b)
     return date;
 }
 
-void * product()
+void * product(void * arg)
 {
+    int date;
+    date = *(int *)arg;
     int i;
     for(i = 0; i<100; i++)
     {
-       printf("%d------>\n",i);
+        printf("%d----%d-->\n",i,date);
         put(&buffer,i);
     }
     put(&buffer,OVER);
@@ -77,30 +80,50 @@ void *consumer()
         num = get(&buffer);
         if(num == OVER)
             break;
-        printf("------->%d\n",num);
+       printf("------->%d\n",num);
     }
 }
 int main()
 {
     pthread_t pthread_id;
+    pthread_t pthread_id3;
     pthread_t pthread_id2;
+    pthread_t pthread_id4;
     int ret;
+    int i;
+    int num1 = 1;
+    int num2 = 2;
 
     init(&buffer);
-
-    ret = pthread_create(&pthread_id, NULL,  (void*)product,NULL);
+    ret = pthread_create(&pthread_id, NULL,  (void*)product,(void *)&num1);
     if(ret != 0 )
     {
         printf("pthread_create error\n");
         return -1;
     }
+    ret = pthread_create(&pthread_id3, NULL,  (void*)product,(void *)&num2);
+    if(ret != 0 )
+    {
+        printf("pthread_create error\n");
+        return -1;
+    }
+
+
     ret = pthread_create(&pthread_id2, NULL,  (void*)consumer,NULL);
     if(ret != 0 )
     {
         printf("pthread_create error\n");
         return -1;
     }
-    pthread_join(pthread_id2, NULL);
+    ret = pthread_create(&pthread_id4, NULL,  (void*)consumer,NULL);
+    if(ret != 0 )
+    {
+        printf("pthread_create error\n");
+        return -1;
+    }
     pthread_join(pthread_id, NULL);
+    pthread_join(pthread_id3, NULL);
+    pthread_join(pthread_id2, NULL);
+    pthread_join(pthread_id4, NULL);
     return 0;
 }
