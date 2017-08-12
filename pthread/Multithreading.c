@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include<string.h>
 
 #define BUFFER_SIZE 16
 #define OVER (-1)
@@ -24,8 +25,12 @@ void init(struct prodcons * b)
     b->readpos = 0;
     b->writepos = 0;
 }
-void put(struct prodcons *p,int num)
+void put(struct prodcons *p,void * message)
 {
+	char date[BUF_SIZE];
+	memset(date, 0x00, BUF_SIZE);
+	
+	memcpy(date,(char *)message, sizeof(message));
     //给互斥变量加锁
     pthread_mutex_lock(&p->lock);
     //缓冲区已满等待
@@ -33,7 +38,7 @@ void put(struct prodcons *p,int num)
     {
         pthread_cond_wait(&p->notfull,&p->lock);
     }
-    p->buf[p->writepos] = num;
+    p->buf[p->writepos] = *message;
     p->writepos++;
     if(p->writepos >= BUFFER_SIZE)
         p->writepos = 0;
@@ -41,16 +46,17 @@ void put(struct prodcons *p,int num)
     pthread_mutex_unlock(&p->lock);
 
 }
-int get(struct prodcons *b)
+char * get(struct prodcons *b)
 {
-    int date;
+    char date[BUF_SIZE];
+	memset(date, 0x00, BUF_SIZE);
     pthread_mutex_lock(&b->lock);
     //缓冲区为空等待
     if(b->writepos == b->readpos)
     {
         pthread_cond_wait(&b->notempty,&b->lock);
     }
-    date = b->buf[b->readpos];
+    *date = b->buf[b->readpos];
     b->readpos++;
     if(b->readpos >=BUFFER_SIZE)
         b->readpos = 0;
@@ -60,69 +66,65 @@ int get(struct prodcons *b)
 }
 
 void * product(void * arg)
-{
-    int date;
-    date = *(int *)arg;
-    int i;
-    for(i = 0; i<100; i++)
-    {
-        printf("%d----%d-->\n",i,date);
-        put(&buffer,i);
-    }
-    put(&buffer,OVER);
+{ 
+    put(&buffer,arg);
 }
 
 void *consumer()
 {
-    int num = 0;
+    char * date ;
+	
     while(1)
     {
-        num = get(&buffer);
-        if(num == OVER)
-            break;
-       printf("------->%d\n",num);
+        char  = get(&buffer);
+		
     }
 }
 struct msgs{
     msgtype;
     msg_text[BUF_SIZE];	
 }
+static int num =  2;
 int main()
 {
-    pthread_t pthread_id[];
+    pthread_t pthread_id[num];
     pthread_t pthread_id3;
     pthread_t pthread_id2;
     pthread_t pthread_id4;
     int ret;
     int i;
-    int num1 = 1;
-    int num2 = 2;
+
     msgs  msg;
     
     KEY_t key;
     int pid;
     msgget(key,IPC_CREATE|0666);
     msgrcv(key,(void *)&msg, BUF_SIZE,0,0);
-
     init(&buffer);
-    for() 
-
-    ret = pthread_create(&pthread_id, NULL,  (void*)product,(void *)msg.text);
-    if(ret != 0 )
+    for(i = 0; i < num; i++) 
     {
-        printf("pthread_create error\n");
-        return -1;
+		
+		ret = pthread_create(&pthread_id[i], NULL,  (void*)product,(void *)msg.text);
+		if(ret != 0 )
+		{
+			printf("pthread_create error\n");
+			return -1;
+		}
+	}
+    
+	for(i = 0; i < num ;i++)
+	{
+		ret = pthread_create(&pthread_id[i], NULL,  (void*)consumer,NULL);
+		if(ret != 0 )
+		{
+			printf("pthread_create error\n");
+			return -1;
+		}
+	}
+     for(i = 0; i < num; i++)
+    {
+        pthread_join(pthread_id2[i], NULL);
     }
 
-    ret = pthread_create(&pthread_id2, NULL,  (void*)consumer,NULL);
-    if(ret != 0 )
-    {
-        printf("pthread_create error\n");
-        return -1;
-    }
-    pthread_join(pthread_id, NULL);
-    pthread_join(pthread_id3, NULL);
-    pthread_join(pthread_id2, NULL);
-    pthread_join(pthread_id4, NULL);
     return 0;
 }
