@@ -5,6 +5,7 @@
 
 #define BUFFER_SIZE 16
 #define OVER (-1)
+#define BUF_SIZE 512
 struct prodcons
 {
     char buf[BUFFER_SIZE];
@@ -15,7 +16,6 @@ struct prodcons
 
 };
 struct prodcons buffer;
-
 void init(struct prodcons * b)
 {
     pthread_mutex_init(&b->lock,NULL);
@@ -83,9 +83,13 @@ void *consumer()
        printf("------->%d\n",num);
     }
 }
+struct msgs{
+    msgtype;
+    msg_text[BUF_SIZE];	
+}
 int main()
 {
-    pthread_t pthread_id;
+    pthread_t pthread_id[];
     pthread_t pthread_id3;
     pthread_t pthread_id2;
     pthread_t pthread_id4;
@@ -93,29 +97,24 @@ int main()
     int i;
     int num1 = 1;
     int num2 = 2;
+    msgs  msg;
+    
+    KEY_t key;
+    int pid;
+    msgget(key,IPC_CREATE|0666);
+    msgrcv(key,(void *)&msg, BUF_SIZE,0,0);
 
     init(&buffer);
-    ret = pthread_create(&pthread_id, NULL,  (void*)product,(void *)&num1);
-    if(ret != 0 )
-    {
-        printf("pthread_create error\n");
-        return -1;
-    }
-    ret = pthread_create(&pthread_id3, NULL,  (void*)product,(void *)&num2);
-    if(ret != 0 )
-    {
-        printf("pthread_create error\n");
-        return -1;
-    }
+    for() 
 
+    ret = pthread_create(&pthread_id, NULL,  (void*)product,(void *)msg.text);
+    if(ret != 0 )
+    {
+        printf("pthread_create error\n");
+        return -1;
+    }
 
     ret = pthread_create(&pthread_id2, NULL,  (void*)consumer,NULL);
-    if(ret != 0 )
-    {
-        printf("pthread_create error\n");
-        return -1;
-    }
-    ret = pthread_create(&pthread_id4, NULL,  (void*)consumer,NULL);
     if(ret != 0 )
     {
         printf("pthread_create error\n");
