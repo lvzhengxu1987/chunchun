@@ -43,7 +43,7 @@ void put(struct prodcons *p,void * message)
     {
         pthread_cond_wait(&p->notfull,&p->lock);
     }
-    p->buf[p->writepos] = *(void *)message;
+    p->buf[p->writepos] = (void *)message;
     p->writepos++;
     if(p->writepos >= BUFFER_SIZE)
         p->writepos = 0;
@@ -95,36 +95,37 @@ int main()
     int ret;
     int i;
 
-    msgs  msg;
+    struct msgs  msg;
     
     key_t key;
     int pid;
-    msgget(key,IPC_CREATE|0666);
+    msgget(key,0666);
     msgrcv(key,(void *)&msg, BUF_SIZE,0,0);
+     printf("The Key is %d\n",key);
     init(&buffer);
     for(i = 0; i < num; i++) 
     {
-		
-		ret = pthread_create(&pthread_id[i], NULL,  (void*)product,(void *)msg.msg_text);
-		if(ret != 0 )
-		{
-			printf("pthread_create error\n");
-			return -1;
-		}
-	}
-    
-	for(i = 0; i < num ;i++)
-	{
-		ret = pthread_create(&pthread_id[i], NULL,  (void*)consumer,NULL);
-		if(ret != 0 )
-		{
-			printf("pthread_create error\n");
-			return -1;
-		}
-	}
-     for(i = 0; i < num; i++)
+
+	    ret = pthread_create(&pthread_id[i], NULL,  (void*)product,(void *)msg.msg_text);
+	    if(ret != 0 )
+	    {
+		    printf("pthread_create error\n");
+		    return -1;
+	    }
+    }
+
+    for(i = 0; i < num ;i++)
     {
-        pthread_join(pthread_id2[i], NULL);
+	    ret = pthread_create(&pthread_id[i], NULL,  (void*)consumer,NULL);
+	    if(ret != 0 )
+	    {
+		    printf("pthread_create error\n");
+		    return -1;
+	    }
+    }
+    for(i = 0; i < num; i++)
+    {
+	    pthread_join(pthread_id[i], NULL);
     }
 
     return 0;
