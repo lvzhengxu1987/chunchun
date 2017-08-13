@@ -81,9 +81,9 @@ void *consumer()
     }
 }
 struct msgs{
-    msgtype;
-    msg_text[BUF_SIZE];	
-}
+    long msgtype;
+    char msg_text[BUF_SIZE];	
+};
 static int num =  2;
 int main()
 {
@@ -96,7 +96,7 @@ int main()
 
     msgs  msg;
     
-    KEY_t key;
+    key_t key;
     int pid;
     msgget(key,IPC_CREATE|0666);
     msgrcv(key,(void *)&msg, BUF_SIZE,0,0);

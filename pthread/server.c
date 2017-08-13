@@ -13,11 +13,11 @@
 #define LENGTH_OF_LISTEN_QUEUE 20
 #define BUFFER_SIZE 1024
 #define FILE_NAME_MAX_SIZE 512
-
+#define BUF_size 512
 struct msgs{
-    msgtype;
-    msg_text[BUF_SIZE];	
-}
+    long msgtype;
+    char msg_text[BUF_SIZE];	
+};
 
 int main(int argc, char **argv)
 
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 	
 		//accept函数把连接到的客户端信息填写到客户端的socket地址结构client_addr中
 	
-		int new_server_socket = accept(server_socket,(structsockaddr*)&client_addr,&length);
+		int new_server_socket = accept(server_socket,(struct sockaddr*)&client_addr,&length);
 	
 		if ( new_server_socket < 0)
 	
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 	
 		}
 		
-	KEY_t key;
+	key_t key;
     int pid;
 	msgget(key,IPC_CREATE|0666);
     msgsnd(key,(void *)&buffer, BUF_SIZE,0);
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 	//发送buffer中的字符串到new_server_socket,实际是给客户端
 	memcpy(buffer, "server send ",12);
 	
-	if(send(new_server_socket,buffer,file_block_length,0)<0)
+	if(send(new_server_socket,buffer,12,0)<0)
 	
 	{
 	
