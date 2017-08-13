@@ -7,6 +7,11 @@
 #define BUFFER_SIZE 16
 #define OVER (-1)
 #define BUF_SIZE 512
+struct msgs{
+    long msgtype;
+    char msg_text[BUF_SIZE];	
+};
+static int num =  2;
 struct prodcons
 {
     char buf[BUFFER_SIZE];
@@ -38,7 +43,7 @@ void put(struct prodcons *p,void * message)
     {
         pthread_cond_wait(&p->notfull,&p->lock);
     }
-    p->buf[p->writepos] = *message;
+    p->buf[p->writepos] = *(void *)message;
     p->writepos++;
     if(p->writepos >= BUFFER_SIZE)
         p->writepos = 0;
@@ -76,15 +81,11 @@ void *consumer()
 	
     while(1)
     {
-        char  = get(&buffer);
+        date  = get(&buffer);
 		
     }
 }
-struct msgs{
-    long msgtype;
-    char msg_text[BUF_SIZE];	
-};
-static int num =  2;
+
 int main()
 {
     pthread_t pthread_id[num];
@@ -104,7 +105,7 @@ int main()
     for(i = 0; i < num; i++) 
     {
 		
-		ret = pthread_create(&pthread_id[i], NULL,  (void*)product,(void *)msg.text);
+		ret = pthread_create(&pthread_id[i], NULL,  (void*)product,(void *)msg.msg_text);
 		if(ret != 0 )
 		{
 			printf("pthread_create error\n");
