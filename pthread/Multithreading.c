@@ -3,10 +3,20 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include<string.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <error.h>
+#include <errno.h>
+#include <semaphore.h>
 
-#define BUFFER_SIZE 16
+#define BUFFER_SIZE 512
 #define OVER (-1)
+#define NUM 1
 #define BUF_SIZE 512
+#define MSGKEY 1024
+sem_t sem;//信号量 
+
 struct msgs{
     long msgtype;
     char msg_text[BUF_SIZE];	
@@ -39,21 +49,24 @@ void put(struct prodcons *p,void * message)
     //给互斥变量加锁
     pthread_mutex_lock(&p->lock);
     //缓冲区已满等待
-    if((p->writepos+1)%BUFFER_SIZE == p->readpos)
+    if((p->writepos-NUM) == p->readpos)
     {
         pthread_cond_wait(&p->notfull,&p->lock);
     }
-    p->buf[p->writepos] = (void *)message;
+//    p->buf[p->writepos] = (void *)message;
+    memcpy(&p->buf[p->writepos] , (char *)message, strlen((char *)message));
+    printf("message is put   : %s \n",&p->buf[p->writepos]);
     p->writepos++;
-    if(p->writepos >= BUFFER_SIZE)
+    if(p->writepos >= NUM)
         p->writepos = 0;
     pthread_cond_signal(&p->notempty);
     pthread_mutex_unlock(&p->lock);
 
 }
-char * get(struct prodcons *b)
+void * get(struct prodcons *b )
 {
-    char date[BUF_SIZE];
+	char date[BUF_SIZE];
+	memset(date, 0x00, BUF_SIZE);
 	memset(date, 0x00, BUF_SIZE);
     pthread_mutex_lock(&b->lock);
     //缓冲区为空等待
@@ -61,72 +74,88 @@ char * get(struct prodcons *b)
     {
         pthread_cond_wait(&b->notempty,&b->lock);
     }
-    *date = b->buf[b->readpos];
+    strcpy(date, &(b->buf[b->readpos]));
+    printf("message is get  : %s \n",(char *)date);
     b->readpos++;
-    if(b->readpos >=BUFFER_SIZE)
+    if(b->readpos >=NUM)
         b->readpos = 0;
     pthread_cond_signal(&b->notfull);
     pthread_mutex_unlock(&b->lock);
-    return date;
 }
 
 void * product(void * arg)
 { 
-    put(&buffer,arg);
+    sem_wait(&sem); 
+    while(1)
+    {
+        printf("message is product  : %s \n",(char *)arg);
+        put(&buffer,arg);
+        sem_wait(&sem);
+    }
 }
 
 void *consumer()
 {
-    char * date ;
-	
+
     while(1)
     {
-        date  = get(&buffer);
-		
+        get(&buffer);
+
     }
 }
 
 int main()
 {
     pthread_t pthread_id[num];
-    pthread_t pthread_id3;
-    pthread_t pthread_id2;
-    pthread_t pthread_id4;
     int ret;
     int i;
 
     struct msgs  msg;
-    
+
     key_t key;
+    ret = sem_init(&sem, 0, 0);
+    if(ret == -1)  
+    {  
+        perror("semaphore intitialization failed\n");  
+        exit(EXIT_FAILURE);  
+    }
     int pid;
-    msgget(key,0666);
-    msgrcv(key,(void *)&msg, BUF_SIZE,0,0);
-     printf("The Key is %d\n",key);
     init(&buffer);
     for(i = 0; i < num; i++) 
     {
 
-	    ret = pthread_create(&pthread_id[i], NULL,  (void*)product,(void *)msg.msg_text);
-	    if(ret != 0 )
-	    {
-		    printf("pthread_create error\n");
-		    return -1;
-	    }
+        ret = pthread_create(&pthread_id[i], NULL,  (void*)product,(void *)msg.msg_text);
+        if(ret != 0 )
+        {
+            printf("pthread_create error\n");
+            return -1;
+        }
     }
 
     for(i = 0; i < num ;i++)
     {
-	    ret = pthread_create(&pthread_id[i], NULL,  (void*)consumer,NULL);
-	    if(ret != 0 )
-	    {
-		    printf("pthread_create error\n");
-		    return -1;
-	    }
+        ret = pthread_create(&pthread_id[i], NULL,  (void*)consumer,NULL);
+        if(ret != 0 )
+        {
+            printf("pthread_create error\n");
+            return -1;
+        }
     }
-    for(i = 0; i < num; i++)
+    while(1)
     {
-	    pthread_join(pthread_id[i], NULL);
+        pid = msgget(MSGKEY,IPC_CREAT | 0666);
+        if(msgrcv(pid,(void *)&msg, BUF_SIZE,0,0) < 0)
+        {
+            printf(" msg failed,errno=%d[%s]\n",errno,strerror(errno)); 
+        }
+        sem_post(&sem);
     }
+    /*
+       for(i = 0; i < num; i++)
+       {
+       pthread_join(pthread_id[i], NULL);
+       }
+     */
 
     return 0;
 }
