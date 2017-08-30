@@ -1,6 +1,9 @@
+
+# -*- coding: UTF-8 -*-
+
 import socket
 import sys
-import getFileContent
+#import getFileContent
 #声明一个将要绑定的IP和端口，这里是用本地地址
 server_address = ('localhost', 8080)
 class WebServer():
@@ -20,10 +23,11 @@ class WebServer():
             try:
                 #获取请求信息
                 data = connection.recv(1024)
-		print data
-                if data:
-                    #发送请求信息
-                    connection.sendall(getFileContent.getHtmlFile("I Have Recv ；my name is B"))
+                print data
+                #发送请求信息
+                message = 'I am B '
+                connection.sendall(message)
+                print message
             finally:
                 connection.close()
 

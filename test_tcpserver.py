@@ -11,14 +11,16 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(11).strip()
         print "{} wrote:".format(self.client_address[0])
         print self.data
         # just send back the same data, but upper-cased
-        self.request.sendall(self.data.upper())
+        message = 'my name is B '
+        self.request.sendall(message)
+        print message
 
 if __name__ == "__main__":
-    HOST, PORT = "0.0.0.0", 10000
+    HOST, PORT = "127.0.0.1", 8888
     server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C

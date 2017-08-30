@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     memset(&remote_addr,0,sizeof(remote_addr)); // 数据初始化--清零     
     remote_addr.sin_family=AF_INET; // 设置为IP通信     
     remote_addr.sin_addr.s_addr=inet_addr("127.0.0.1");// 服务器IP地址     
-    remote_addr.sin_port=htons(8000); // 服务器端口号     
+    remote_addr.sin_port=htons(8880); // 服务器端口号     
     // 创建客户端套接字--IPv4协议，面向连接通信，TCP协议   
     if((client_sockfd=socket(PF_INET,SOCK_STREAM,0))<0)     
     {     
@@ -31,24 +31,19 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);  
     }    
     // 循环监听服务器请求      
-    while(1)  
+    printf("Please input the message:");  
+    scanf("%s",buf);  
+    // exit  
+    send(client_sockfd,buf,BUFFER_SIZE,0);  
+    // 接收服务器端信息   
+    char buf1[255];
+    memset(buf1,0x00,sizeof(buf1));
+    len=recv(client_sockfd,buf1,BUFFER_SIZE,0);  
+    printf("receive from server:%s\n",buf1);  
+    if(len<0)  
     {  
-        printf("Please input the message:");  
-        scanf("%s",buf);  
-        // exit  
-        if(strcmp(buf,"exit")==0)  
-        {  
-            break;  
-        }  
-        send(client_sockfd,buf,BUFFER_SIZE,0);  
-        // 接收服务器端信息   
-        len=recv(client_sockfd,buf,BUFFER_SIZE,0);  
-        printf("receive from server:%s/n",buf);  
-        if(len<0)  
-        {  
-            perror("receive from server failed");  
-            exit(EXIT_FAILURE);  
-        }  
+        perror("receive from server failed");  
+        exit(EXIT_FAILURE);  
     }  
     close(client_sockfd);// 关闭套接字     
     return 0;  
