@@ -5,7 +5,9 @@
 #include <arpa/inet.h>    
 #include <string.h>  
 #include <stdlib.h>  
-
+#include <net/if.h>       /* for ifconf */  
+#include <linux/sockios.h>    /* for net status mask */  
+#include <sys/ioctl.h>  
 #define BUFFER_SIZE 40  
 
 int main(int argc, char *argv[])     
@@ -30,6 +32,11 @@ int main(int argc, char *argv[])
         perror("connect to server failed");     
         exit(EXIT_FAILURE);  
     }    
+    struct ifreq ifr;
+    int ips;
+    strcpy(ifr.ifr_name, "eth0");  
+    ips = ioctl(client_sockfd, SIOCGIFADDR, &ifr);
+    printf("IP is :%d\n",ips );
     // 循环监听服务器请求      
     printf("Please input the message:");  
     scanf("%s",buf);  

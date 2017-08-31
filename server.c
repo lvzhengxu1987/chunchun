@@ -18,11 +18,12 @@
 #define SERVER_PORT   8880 
 #define BUFFER_SIZE 1024
 #define BUF_SIZE 512
-#define MAX_EVENTS 4096
+#define MAX_EVENTS 4000
 
 
 int num = 0;
 
+int client_conect(char * buf,char * buffer);
 int main(int argc, char **argv)
 
 {
@@ -80,17 +81,23 @@ int main(int argc, char **argv)
     {
         //等待事件的发生
         nfds=epoll_wait(epoll_fd,events,MAX_EVENTS,-1);  
-        printf("22222 :  %d \n",nfds);
         if(nfds==-1)  
         {  
             perror("start epoll_wait failed");  
             exit(EXIT_FAILURE);  
         } 
         int i;
+        /*
         for(i = 0; i < nfds ; i++)
+        {
+                printf("xxxxxxxxxxxxxxxxxxxxxxx:%d  , %d,    %d   \n",i,events[i].data.fd, server_socket);
+        }
+        */
+        for(i = 0; i  < nfds ; ++i)
         {
             if(events[i].data.fd==server_socket)
             {
+        //        printf("xxxxxxxxxxxxxxxxxxxxxxx:%d  , %d,    %d   \n",i,events[i].data.fd, server_socket);
                 //定义客户端的socket地址结构client_addr
                 struct sockaddr_in client_addr;
                 socklen_t length = sizeof(client_addr);
@@ -115,9 +122,16 @@ int main(int argc, char **argv)
             }
             else
             {
+                if ( (new_server_socket= events[i].data.fd) < 0)
+                {
+                    continue;
+                }
+
                 num++;
                 char buffer[BUFFER_SIZE];
+                char buf[BUFFER_SIZE];
                 bzero(buffer, BUFFER_SIZE);
+                bzero(buf, BUFFER_SIZE);
                 int length;
                 length = recv(new_server_socket,buffer,BUFFER_SIZE,0);
                 if (length < 0)
@@ -126,13 +140,12 @@ int main(int argc, char **argv)
                     break;
                 }
                 printf("The buf  is %s , %d\n\n",buffer,num);
-                bzero(buffer, BUFFER_SIZE);
                 //向B转发消息       
-               // int client_conect(); 
+                client_conect(buffer,buf); 
 
                 //发送buffer中的字符串到new_server_socket,实际是给客户端
-                memcpy(buffer, "My name is C ",14);
-                if(send(new_server_socket,buffer,25,0)<0)
+                //memcpy(buffer, "My name is C ",14);
+                if(send(new_server_socket,buf,25,0)<0)
                 {
                     printf("Send File\n");
                     break;
@@ -147,18 +160,18 @@ int main(int argc, char **argv)
     close(server_socket);
     return 0;
 }
-int client_conect()
+int client_conect(char * buf,char * buffer)
 {
+    printf("1111111111\n");
     int client_sockfd;
     int len;
     struct sockaddr_in remote_addr; // 服务器端网络地址结构体     
-    char buf[BUFFER_SIZE];  // 数据传送的缓冲区     
     memset(&remote_addr,0,sizeof(remote_addr)); // 数据初始化--清零     
     remote_addr.sin_family=AF_INET; // 设置为IP通信     
     remote_addr.sin_addr.s_addr=inet_addr("127.0.0.1");// 服务器IP地址     
-    remote_addr.sin_port=htons(8000); // 服务器端口号     
+    remote_addr.sin_port=htons(8888); // 服务器端口号     
     // 创建客户端套接字--IPv4协议，面向连接通信，TCP协议   
-    if((client_sockfd=socket(PF_INET,SOCK_STREAM,0))<0)
+    if((client_sockfd=socket(AF_INET,SOCK_STREAM,0))<0)
     {
         perror("client socket creation failed");
         exit(EXIT_FAILURE);
@@ -172,8 +185,8 @@ int client_conect()
     // 循环监听服务器请求      
     send(client_sockfd,buf,BUFFER_SIZE,0);
     // 接收服务器端信息   
-    len=recv(client_sockfd,buf,BUFFER_SIZE,0);
-    printf("receive from server:%s/n",buf);
+    len=recv(client_sockfd,buffer,BUFFER_SIZE,0);
+    printf("receive from B  :%s\n",buffer);
     if(len<0)
     {
         perror("receive from server failed");
