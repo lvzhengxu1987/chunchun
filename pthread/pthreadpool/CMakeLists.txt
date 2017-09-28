@@ -1,0 +1,7 @@
+cmake_minimum_required (VERSION 3.5.1)
+AUX_SOURCE_DIRECTORY(. DIR_SRCS)
+project (pthread_pool)
+add_executable (pthread_pool ${DIR_SRCS})
+find_package (Threads REQUIRED)
+target_link_libraries(pthread_pool Threads::Threads)
+#target_link_libraries(pthread_pool INTERFACE  pthread) 
