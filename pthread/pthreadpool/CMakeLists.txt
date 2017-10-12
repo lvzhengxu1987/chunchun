@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.5.1)
 AUX_SOURCE_DIRECTORY(. DIR_SRCS)
 project (pthread_pool)
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb") 
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall") 
 add_executable (pthread_pool ${DIR_SRCS})
 find_package (Threads REQUIRED)
 target_link_libraries(pthread_pool Threads::Threads)

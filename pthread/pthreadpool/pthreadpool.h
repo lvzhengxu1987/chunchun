@@ -18,7 +18,6 @@
 
 
 
-
 struct job{
     void* (*callback_function)(void *arg);    //线程回调函数
     void *arg;                                //回调函数参数
@@ -40,8 +39,9 @@ struct threadpool{
     pthread_cond_t work_not_full;  //线程为满
 };
 
-
 int threadpool_work(struct threadpool* pool, void * (*callback_function)(void * arg), void * arg);
 struct threadpool * threadpool_init(int thread_num, int work_max_num);
 int threadpool_destroy(struct threadpool *pool);
 void* threadpool_function(void* arg);
+int create_socket(char * host_addr, int host_port);
+int socket_close(int socketid);

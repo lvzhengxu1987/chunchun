@@ -1,0 +1,3 @@
+/home/chunchun/chunchun/pthread/pthreadpool/test/CMakeFiles/rebuild_cache.dir
+/home/chunchun/chunchun/pthread/pthreadpool/test/CMakeFiles/edit_cache.dir
+/home/chunchun/chunchun/pthread/pthreadpool/test/CMakeFiles/pthread_pool.dir
